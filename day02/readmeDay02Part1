@@ -1,0 +1,177 @@
+# 🎄 Advent of Code 2025 – Día 2  
+
+## Parte 1 – Gift Shop  
+## Explicación completa + traducción del enunciado
+
+---
+
+# 📝 Traducción del enunciado
+
+Has entrado al interior y subido por el ascensor hasta su única otra parada: **la tienda de regalos**.  
+Mientras avanzas entre estanterías infinitas, un elfo te reconoce y te pide ayuda.
+
+Un elfo pequeño estuvo jugando con un ordenador de la tienda y añadió **muchos IDs de producto inválidos** a la base de datos.  
+La mayoría ya están revisados, pero te dejan **unos pocos rangos** (tu input) para investigar.
+
+Un “rango” tiene esta forma:
+
+```
+11-22,95-115,998-1012,1188511880-1188511890,...
+```
+
+Cada rango tiene dos números: **el primer ID y el último**, separados por un guion.  
+Cada rango representa *todos* los IDs desde el primero hasta el último (incluidos).
+
+Tu trabajo consiste en buscar **IDs inválidos** dentro de esos rangos.
+
+Un ID es inválido si:
+
+> Es un número formado por **una secuencia de dígitos repetida exactamente dos veces**.  
+> Ejemplos:  
+> - `55` = `5` + `5`  
+> - `6464` = `64` + `64`  
+> - `123123` = `123` + `123`  
+
+No existen ceros a la izquierda, por lo que `0101` no cuenta, pero `101` sí es válido (no repetido).
+
+En el ejemplo del enunciado:
+
+- 11-22 → inválidos: **11, 22**  
+- 95-115 → inválido: **99**  
+- 998-1012 → inválido: **1010**  
+- 1188511880-1188511890 → inválido: **1188511885**  
+- 222220-222224 → inválido: **222222**  
+- 1698522-1698528 → ninguno  
+- 446443-446449 → inválido: **446446**  
+- 38593856-38593862 → inválido: **38593859**
+
+La suma total del ejemplo es **1227775554**.
+
+Tu trabajo:  
+👉 **Suma todos los IDs inválidos encontrados en tu input.**
+
+---
+
+# 🤔 ¿Qué es un ID inválido exactamente?
+
+Un ID es inválido si su escritura decimal:
+
+1. Tiene **longitud par**  
+   (si es impar no puede dividirse en dos mitades iguales)
+2. Se divide en dos partes **exactamente iguales**
+
+Ejemplos válidos:
+
+- `11` → `"1"` + `"1"`
+- `22` → `"2"` + `"2"`
+- `6464` → `"64"` + `"64"`
+- `1188511885` → `"11885"` + `"11885"`
+
+Ejemplos NO válidos:
+
+- `1234` → `"12"` ≠ `"34"`
+- `1231231` → longitud impar (7)
+- `0101` → no existe (leading zero)
+
+---
+
+# 🧠 Enfoque del problema
+
+1. Leer la línea completa del `input.txt`.
+2. Separarla por comas → obtener cada rango `"a-b"`.
+3. Para cada rango:
+   - convertir `a` y `b` a números,
+   - recorrer todos los valores entre `a` y `b`,
+   - comprobar si cada ID es inválido.
+4. Acumular la suma total.
+
+---
+
+# 🛠️ Función para detectar IDs inválidos
+
+```js
+function isInvalidId(n) {
+  const s = String(n)       // Convertimos el número en texto
+  if (s.length % 2 === 1)   // Si la longitud es impar → no puede ser repetido
+    return false
+
+  const half = s.length / 2
+  const first = s.slice(0, half)
+  const second = s.slice(half)
+
+  return first === second   // Devuelve true si las dos mitades son iguales
+}
+```
+
+---
+
+# 🧩 Código completo de `part1.js`
+
+```js
+const fs = require('fs')
+
+// 1. Leemos el input del archivo
+const input = fs.readFileSync(__dirname + '/input.txt', 'utf8').trim()
+
+// 2. Separamos por comas para obtener los rangos "a-b"
+const rangeStrings = input
+  .split(',')
+  .map(r => r.trim())
+  .filter(r => r.length > 0)
+
+let sum = 0
+
+// 3. Recorremos cada rango
+for (const range of rangeStrings) {
+  const [startStr, endStr] = range.split('-')
+
+  const start = Number(startStr)
+  const end = Number(endStr)
+
+  if (Number.isNaN(start) || Number.isNaN(end)) {
+    console.log('Rango inválido, se ignora:', range)
+    continue
+  }
+
+  // 4. Recorremos todos los IDs del rango [start, end]
+  for (let id = start; id <= end; id++) {
+    if (isInvalidId(id)) {
+      sum += id
+    }
+  }
+}
+
+// 5. Mostramos el resultado final
+console.log('Suma de IDs inválidos (parte 1):', sum)
+
+// ---------------------
+// Función auxiliar
+// ---------------------
+function isInvalidId(n) {
+  const s = String(n)
+
+  // Si tiene longitud impar, no puede ser "algo repetido dos veces"
+  if (s.length % 2 === 1) {
+    return false
+  }
+
+  const half = s.length / 2
+  const first = s.slice(0, half)
+  const second = s.slice(half)
+
+  return first === second
+}
+```
+
+---
+
+# ✅ Resultado
+
+Ejecuta:
+
+```bash
+node part1.js
+```
+
+Y obtendrás la suma de todos los IDs inválidos en tu input.
+
